@@ -13,12 +13,12 @@ This installer has been tested on:
 - Mac OS 10.9 (Xcode 6)
 - Mac OS 10.12 (Xcode 9.2)
 - Mac OS 10.14 (Xcode 11.3 - does not work due to a bug with Xcode) 
-- Mac OS 12.3 (Xcode 13.3)
+- Mac OS 12.3 (Xcode 13.3.1)
 
 Manual Installation:
 - Copy the file Go.ideplugin to ~/Library/Developer/Xcode/Plug-ins/Go.ideplugin.
 - Copy the file Go.xclangspec to ~/Library/Developer/Xcode/Specifications/Go.xclangspec.
-- Run this command: defaults read /Applications/Xcode.app/Contents/Info DVTPlugInCompatibilityUUID.
+- Run this command: defaults read /Applications/Xcode.app/Contents/Info DVTPlugInCompatibilityUUID
 - Copy the UUID.
 - Open the file ~/Library/Developer/Xcode/Plug-ins/Go.ideplugin/Contents/Info.plist.
 - Paste the UUID to under DVTPlugInCompatibilityUUIDs.
