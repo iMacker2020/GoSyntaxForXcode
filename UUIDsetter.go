@@ -3,7 +3,6 @@ package main
 import "fmt"
 import "os/exec"
 import "os"
-import _"os/user"
 import "strings"
 import "io/ioutil"
 
