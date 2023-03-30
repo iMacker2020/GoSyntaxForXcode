@@ -24,4 +24,4 @@ Manual Installation:
 - Paste the UUID to under DVTPlugInCompatibilityUUIDs.
 
 Uninstall:
-- run the included installer with the option of "uninstall": ./installer uninstall
+- Run the included installer with the option of "uninstall": ./installer uninstall
