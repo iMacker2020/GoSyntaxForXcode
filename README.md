@@ -22,3 +22,6 @@ Manual Installation:
 - Copy the UUID.
 - Open the file ~/Library/Developer/Xcode/Plug-ins/Go.ideplugin/Contents/Info.plist.
 - Paste the UUID to under DVTPlugInCompatibilityUUIDs.
+
+Uninstall:
+- run the included installer with the option of "uninstall": ./installer uninstall

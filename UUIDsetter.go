@@ -1,21 +1,79 @@
+// File: UUIDsetter.go
+// Description: Installs the files Go.ideplugin and Go.xclangspec.
+
 package main
 
 import "fmt"
 import "os/exec"
 import "os"
+import _"os/user"
 import "strings"
 import "io/ioutil"
+import "time"
 
-var xcodeUUID = ""
 
 func main() {
     defer checkForError()
+	printBanner()
+	checkArguments()
 	checkFiles()
 	copyLangFile()
 	copyPluginFile()
-    getXcodeUUID()
 	checkPluginUUIDs()
-	fmt.Println("Installation completed. Please restart Xcode to load the plug-in.")
+	fmt.Println("Installation completed. Please restart Xcode to load the plug-in.\n")
+}
+
+// Handles any arguments sent to this program
+func checkArguments() {
+	if len(os.Args) == 2 && os.Args[1] == "uninstall" {
+		uninstallAllFiles()
+		os.Exit(0)
+	} else if len(os.Args) > 1 {
+		fmt.Println("Usage: installer [uninstall]\n")
+		os.Exit(0)
+	}
+}
+
+// Prints a little banner
+func printBanner() {
+	outputStr :=
+	`
+    _______________________________
+   /\                              \
+   \_| Go syntax support for Xcode |
+     | v1.1 - March 30, 2023       |
+     |   __________________________|_
+     \_/____________________________/`
+	fmt.Println(outputStr + "\n\n")
+}
+
+// Uninstall files if the user specifies "uninstall" as the argument to this program
+func uninstallAllFiles() {
+	var err error
+
+	pluginPath := os.Getenv("HOME") + "/Library/Developer/Xcode/Plug-ins/Go.ideplugin"
+	specPath := os.Getenv("HOME") + "/Library/Developer/Xcode/Specifications/Go.xclangspec"
+	destFolder := fmt.Sprintf("%s - %s", "Xcode Files", time.Now())
+	destFolder = destFolder[0 : strings.LastIndex(destFolder, ":") + 5] // add a few digits of the seconds to the name
+	
+	// Create the Xcode folder in the trash
+    err = os.Chdir(os.Getenv("HOME") + "/.Trash/")
+	check(err, "Could not change current directory to Trash")
+	err = os.Mkdir(destFolder, 0755)
+	check(err, "Could not make xcode folder in Trash")
+    
+	destFolder = os.Getenv("HOME") + "/.Trash/" + destFolder
+	
+	files := []string{pluginPath, specPath}
+	for _,path := range(files) {
+        newPath := destFolder + path[strings.LastIndex(path, "/") : ] // get the last path component (the file)
+        fmt.Println("Moving file", path, "to", newPath)
+        err = os.Rename(path, newPath)
+		if err != nil {
+			fmt.Println("\aCould not move file", path, "\nError:", err)
+		}
+	}
+	fmt.Println("Files uninstalled. Please restart Xcode for changes to take effect.\n")
 }
 
 // Check that all the files are with the installer
@@ -27,11 +85,12 @@ func checkFiles() {
 		index := strings.LastIndex(path, "/")
 		path = path[0 : index + 1] // remove this program's name from the path
 		path = path + file
-		_, err = os.Open(path)
+		openFile, err := os.Open(path)
 		if err != nil {
 			message := "Failed to find file " + file + ".\nPlease ensure it is in the same folder as this installer."
 			panic(message)
 		}
+		openFile.Close()
 	}
 }
 
@@ -41,10 +100,10 @@ func copyLangFile() {
 	var c *exec.Cmd
 
 	// create the folder path
-	c = exec.Command("mkdir", "-p", "Library/Developer/Xcode/Specifications/")
-	c.Dir = os.Getenv("HOME")
-	err = c.Run()
-	check(err, "Could not create Specifications folder path")
+	err = os.Chdir(os.Getenv("HOME"))
+	check(err, "Could not change directories to home")
+	err = os.MkdirAll("Library/Developer/Xcode/Specifications/", 0755)
+	check(err, "Could not create folders for specification file")
 	
 	// create the source path
 	path, err := os.Executable()
@@ -53,11 +112,12 @@ func copyLangFile() {
 	path = path[0 : index + 1] // remove this program's name from the path
 	source := path + "Go.xclangspec"
 	
+	// copy the file
 	destination := os.Getenv("HOME") + "/Library/Developer/Xcode/Specifications"
 	fmt.Println("Executing: cp", source, destination)
 	c = exec.Command("cp", source, destination)
-	err = c.Run()
-	check(err, "Could not copy file Go.xclangspec")
+	output, err := c.CombinedOutput()
+	check(err, "Could not copy file Go.xclangspec:" + string(output))
 }
 
 // Copy the plug-in file
@@ -66,10 +126,8 @@ func copyPluginFile() {
 	var c *exec.Cmd
 
 	// create the folder path
-	c = exec.Command("mkdir", "-p", "Library/Developer/Xcode/Plug-ins/")
-	c.Dir = os.Getenv("HOME")
-	err = c.Run()
-	check(err, "Could not create Plug-ins folder path")
+	err = os.MkdirAll("Library/Developer/Xcode/Plug-ins/", 0755)
+	check(err, "Could not create plug-in folder path")
 	
 	// create the source path
 	path, err := os.Executable()
@@ -78,21 +136,23 @@ func copyPluginFile() {
 	path = path[0 : index + 1] // remove this program's name from the path
 	source := path + "Go.ideplugin"
 	
+	// copy the file
 	destination := os.Getenv("HOME") + "/Library/Developer/Xcode/Plug-ins/"
 	c = exec.Command("cp", "-r", source, destination)
 	fmt.Println("Executing: cp", "-r", source, destination)
-	err = c.Run()
-	check(err, "Could not copy file Go.ideplugin")
+	output, err := c.CombinedOutput()
+	check(err, "Could not copy file Go.ideplugin:" + string(output))
 }
 
-// Query the system for Xcode's UUID for plugins
-func getXcodeUUID() {
+// Query the system for Xcode's UUID for plugins and return the string
+func getXcodeUUID() string {
 	cmd := exec.Command("defaults", "read", "/Applications/Xcode.app/Contents/Info", "DVTPlugInCompatibilityUUID")
 	value, err := cmd.Output()
 	check(err, "Failed to run defaults command")
 	
-	xcodeUUID = string(value[:len(value) - 1]) // remove newline
+	xcodeUUID := string(value[:len(value) - 1]) // remove newline
 	fmt.Println("Xcode UUID:", xcodeUUID)
+	return xcodeUUID
 }
 
 // Opens the plugin's Info.plist file and adds Xcode's UUID if needed
@@ -112,6 +172,8 @@ func checkPluginUUIDs() {
 	if pos == -1 {
 		panic("Failed to find DVTPlugInCompatibilityUUIDs string in Info.plist file")
 	}
+	
+	xcodeUUID := getXcodeUUID()
 	
 	// If Xcode's UUID not found, add it in
 	if strings.Index(fileStr, xcodeUUID) == -1 {
