@@ -5,7 +5,7 @@ This project adds syntax highlighting to Xcode providing color to various keywor
 
 ![Xcode Go syntax highlighting](https://user-images.githubusercontent.com/69224955/225790906-737b0400-b811-4a62-a686-61822ea8d835.png)
 
-The included installer is a fat-binary that will do all the work of installing the files for you. It contains binaries for both x86_64 and ARM64 (Sorry i386 and PowerPC users). To use it simply double-click on it in the Finder. Once it is done restart Xcode (if it was open) and open a .go file. 
+The included installer is a fat-binary that will do most the work of installing the files for you. It contains binaries for both x86_64 and ARM64 (Sorry i386 and PowerPC users). All you need to do is to double-click on the file Go.ideplugin.zip to extract its contents. Then launch the installer program to complete the installation. Once it is done restart Xcode (if it was open) and open a .go file. 
 
 Notes:
 This installer has been tested on:
