@@ -27,4 +27,4 @@ Uninstall:
 - Run the included installer with the option of "uninstall": ./installer uninstall
 
 To Build the Installer:
-go build -o installer <path>/UUIDsetter.go
+- go build -o installer UUIDsetter.go
